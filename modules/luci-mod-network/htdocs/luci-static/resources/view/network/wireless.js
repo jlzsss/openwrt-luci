@@ -392,6 +392,8 @@ var CBIWifiFrequencyValue = form.Value.extend({
 
 		this.setValues(band, this.bands[mode.value]);
 		this.toggleWifiChannel(elem);
+
+		this.map.checkDepends();
 	},
 
 	toggleWifiChannel: function(elem) {
@@ -461,6 +463,7 @@ var CBIWifiFrequencyValue = form.Value.extend({
 				E('select', {
 					'class': 'channel',
 					'style': 'width:auto',
+					'change': L.bind(this.map.checkDepends, this.map),
 					'disabled': (this.disabled != null) ? this.disabled : this.map.readonly
 				})
 			]),
@@ -469,6 +472,7 @@ var CBIWifiFrequencyValue = form.Value.extend({
 				E('select', {
 					'class': 'htmode',
 					'style': 'width:auto',
+					'change': L.bind(this.map.checkDepends, this.map),
 					'disabled': (this.disabled != null) ? this.disabled : this.map.readonly
 				})
 			]),
@@ -649,7 +653,7 @@ return view.extend({
 
 			if (bss.network.isClientDisconnectSupported()) {
 				if (table.firstElementChild.childNodes.length < 6)
-					table.firstElementChild.appendChild(E('div', { 'class': 'th cbi-section-actions'}));
+					table.firstElementChild.appendChild(E('th', { 'class': 'th cbi-section-actions'}));
 
 				row.push(E('button', {
 					'class': 'cbi-button cbi-button-remove',
@@ -850,7 +854,7 @@ return view.extend({
 				];
 			}
 
-			return E('div', { 'class': 'td middle cbi-section-actions' }, E('div', btns));
+			return E('td', { 'class': 'td middle cbi-section-actions' }, E('div', btns));
 		};
 
 		s.addModalOptions = function(s) {
@@ -883,18 +887,24 @@ return view.extend({
 				o.ucisection = s.section;
 
 				if (hwtype == 'mac80211') {
+					o = ss.taboption('general', form.Flag, 'legacy_rates', _('Allow legacy 802.11b rates'), _('Legacy or badly behaving devices may require legacy 802.11b rates to interoperate. Airtime efficiency may be significantly reduced where these are used. It is recommended to not allow 802.11b rates where possible.'));
+					o.depends({'_freq': '11g', '!contains': true});
+
 					o = ss.taboption('general', CBIWifiTxPowerValue, 'txpower', _('Maximum transmit power'), _('Specifies the maximum transmit power the wireless radio may use. Depending on regulatory requirements and wireless usage, the actual transmit power may be reduced by the driver.'));
 					o.wifiNetwork = radioNet;
 
 					o = ss.taboption('advanced', CBIWifiCountryValue, 'country', _('Country Code'));
 					o.wifiNetwork = radioNet;
-
-					o = ss.taboption('advanced', form.Flag, 'legacy_rates', _('Allow legacy 802.11b rates'));
-					o.default = o.enabled;
 					
 					o = ss.taboption('advanced', form.Flag, 'mu_beamformer', _('MU-MIMO'));
 					o.rmempty = false;
 					o.default = '0';
+ 
+					o = ss.taboption('advanced', form.ListValue, 'cell_density', _('Coverage cell density'), _('Configures data rates based on the coverage cell density. Normal configures basic rates to 6, 12, 24 Mbps if legacy 802.11b rates are not used else to 5.5, 11 Mbps. High configures basic rates to 12, 24 Mbps if legacy 802.11b rates are not used else to the 11 Mbps rate. Very High configures 24 Mbps as the basic rate. Supported rates lower than the minimum basic rate are not offered.'));
+					o.value('0', _('Disabled'));
+					o.value('1', _('Normal'));
+					o.value('2', _('High'));
+					o.value('3', _('Very High'));
 
 					o = ss.taboption('advanced', form.Value, 'distance', _('Distance Optimization'), _('Distance to farthest network member in meters.'));
 					o.datatype = 'or(range(0,114750),"auto")';
@@ -1070,11 +1080,11 @@ return view.extend({
 						return mode;
 					};
 
-					o = ss.taboption('general', form.Flag, 'hidden', _('Hide <abbr title="Extended Service Set Identifier">ESSID</abbr>'));
+					o = ss.taboption('general', form.Flag, 'hidden', _('Hide <abbr title="Extended Service Set Identifier">ESSID</abbr>'), _('Where the ESSID is hidden, clients may fail to roam and airtime efficiency may be significantly reduced.'));
 					o.depends('mode', 'ap');
 					o.depends('mode', 'ap-wds');
 
-					o = ss.taboption('general', form.Flag, 'wmm', _('WMM Mode'));
+					o = ss.taboption('general', form.Flag, 'wmm', _('WMM Mode'), _('Where Wi-Fi Multimedia (WMM) Mode QoS is disabled, clients may be limited to 802.11a/802.11g rates.'));
 					o.depends('mode', 'ap');
 					o.depends('mode', 'ap-wds');
 					o.default = o.enabled;
@@ -1725,15 +1735,15 @@ return view.extend({
 		};
 
 		s.handleScan = function(radioDev, ev) {
-			var table = E('div', { 'class': 'table' }, [
-				E('div', { 'class': 'tr table-titles' }, [
-					E('div', { 'class': 'th col-2 middle center' }, _('Signal')),
-					E('div', { 'class': 'th col-4 middle left' }, _('SSID')),
-					E('div', { 'class': 'th col-2 middle center hide-xs' }, _('Channel')),
-					E('div', { 'class': 'th col-2 middle left hide-xs' }, _('Mode')),
-					E('div', { 'class': 'th col-3 middle left hide-xs' }, _('BSSID')),
-					E('div', { 'class': 'th col-3 middle left' }, _('Encryption')),
-					E('div', { 'class': 'th cbi-section-actions right' }, ' '),
+			var table = E('table', { 'class': 'table' }, [
+				E('tr', { 'class': 'tr table-titles' }, [
+					E('th', { 'class': 'th col-2 middle center' }, _('Signal')),
+					E('th', { 'class': 'th col-4 middle left' }, _('SSID')),
+					E('th', { 'class': 'th col-2 middle center hide-xs' }, _('Channel')),
+					E('th', { 'class': 'th col-2 middle left hide-xs' }, _('Mode')),
+					E('th', { 'class': 'th col-3 middle left hide-xs' }, _('BSSID')),
+					E('th', { 'class': 'th col-3 middle left' }, _('Encryption')),
+					E('th', { 'class': 'th cbi-section-actions right' }, ' '),
 				])
 			]);
 
@@ -2142,13 +2152,13 @@ return view.extend({
 					.then(L.bind(this.poll_status, this, nodes));
 			}, this), 5);
 
-			var table = E('div', { 'class': 'table assoclist', 'id': 'wifi_assoclist_table' }, [
-				E('div', { 'class': 'tr table-titles' }, [
-					E('div', { 'class': 'th nowrap' }, _('Network')),
-					E('div', { 'class': 'th hide-xs' }, _('MAC-Address')),
-					E('div', { 'class': 'th' }, _('Host')),
-					E('div', { 'class': 'th' }, _('Signal / Noise')),
-					E('div', { 'class': 'th' }, _('RX Rate / TX Rate'))
+			var table = E('table', { 'class': 'table assoclist', 'id': 'wifi_assoclist_table' }, [
+				E('tr', { 'class': 'tr table-titles' }, [
+					E('th', { 'class': 'th nowrap' }, _('Network')),
+					E('th', { 'class': 'th hide-xs' }, _('MAC-Address')),
+					E('th', { 'class': 'th' }, _('Host')),
+					E('th', { 'class': 'th' }, _('Signal / Noise')),
+					E('th', { 'class': 'th' }, _('RX Rate / TX Rate'))
 				])
 			]);
 
