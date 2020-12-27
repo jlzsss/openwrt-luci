@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-05-19 19:36+0200\n"
-"PO-Revision-Date: 2020-11-14 12:48+0000\n"
-"Last-Translator: RyotaGamer <21ryotagamer@gmail.com>\n"
+"PO-Revision-Date: 2020-12-10 19:29+0000\n"
+"Last-Translator: Ryota <21ryotagamer@gmail.com>\n"
 "Language-Team: Japanese <https://hosted.weblate.org/projects/openwrt/"
 "luciapplicationsolsr/ja/>\n"
 "Language: ja\n"
@@ -121,7 +121,7 @@ msgstr "ETX"
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrdplugins.lua:15
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrdplugins6.lua:15
 msgid "Enable"
-msgstr "有効"
+msgstr "有効化"
 
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrd.lua:140
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrd6.lua:134
@@ -329,7 +329,7 @@ msgstr "IPv4"
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrd.lua:278
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrdiface.lua:103
 msgid "IPv4 broadcast"
-msgstr "IPv4 ブロードキャスト"
+msgstr "IPv4ブロードキャスト"
 
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrd.lua:279
 #: applications/luci-app-olsr/luasrc/model/cbi/olsr/olsrdiface.lua:104
